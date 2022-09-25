@@ -1,5 +1,5 @@
 # brainmodel_utils
-Basic utilities for comparing models to neural & behavioral data, along with packaging these data.
+Basic utilities for comparing models to neural & behavioral data, along with packaging these data in Python (from Matlab).
 
 # Installation
 To install run:
