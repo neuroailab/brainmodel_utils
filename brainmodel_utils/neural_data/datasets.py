@@ -2,9 +2,8 @@ import numpy as np
 
 
 class DatasetBase(object):
-    def __init__(self, data_path, protocol=2):
+    def __init__(self, data_path):
         self.data_path = data_path
-        self.protocol = protocol
         self.packaged_data = None
 
     def fetch(self):

@@ -7,6 +7,7 @@ if os.path.exists("requirements.txt"):
 else:
     requirements = [
         "numpy>=1.20.3",
+        "xarray>=2022.3.0",
         "scikit-learn>=0.24.2",
         "scipy>=1.7.1",
         "h5py>=3.3.0",
