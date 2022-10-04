@@ -27,7 +27,7 @@ def map_from_str(map_type):
 
 
 def generate_train_test_splits(
-    num_stim, num_splits=5, train_frac=0.8, start_seed=1234,
+    num_stim, num_splits=5, train_frac=0.8, start_seed=0,
 ):
     if train_frac > 0:
         train_test_splits = []

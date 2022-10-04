@@ -119,8 +119,9 @@ def concat_dict_sp(
             if xarray_target is not None:
                 assert xarray_dims is not None
                 assert isinstance(xarray_dims, list)
-                # the main thing that is in common are the units for regression, so we add that metadata
-                assert "units" in xarray_dims
+                # the main thing that is in common are the units in the last dimension for regression,
+                # so we add that metadata from the original target xarray
+                assert xarray_dims[-1] == "units"
                 assert xarray_target.shape[-1] == len(xarray_target.units)
                 assert metric_value_concat.shape[-1] == xarray_target.shape[-1]
                 metric_value_concat = xr.DataArray(
@@ -151,7 +152,7 @@ def generic_trial_avg(source, trial_dim="trials", trial_axis=0):
 
 def get_splithalves(M, seed):
     if M.ndim == 2:
-        # model features are nondeterministic
+        # model features are deterministic
         return M, M
     else:
         assert M.ndim == 3

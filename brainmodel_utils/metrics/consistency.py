@@ -194,9 +194,27 @@ def get_linregress_consistency(
     map_kwargs,
     num_bootstrap_iters=100,
     num_parallel_jobs=1,
-    start_seed=0,
+    start_seed=1234,
     **kwargs
 ):
+
+    """
+    The main function for computing the linear regression consistency (noise corrected)
+    between source and target.
+
+    source: Either model features (stimuli x units), or neural features (trials x stimuli x units)
+    target: Neural features (trials x stimuli x units)
+    map_kwargs: Either a dict or a list of dicts (one per train/test split) specifying the linear regression parameters
+    num_bootstrap_iters: How many split-halves to compute.
+    num_parallel_jobs: Number of parallel jobs to parallelize the outermost for loop over split-half trials.
+    start_seed: Starting seed for generating split halves (for reproducibility).
+
+    Optional Arguments:
+    metric: Correlation metric (across stimuli) used per neuron. Default is Pearson's R.
+            Other choices can be "spearmanr", for example.
+    splits: Your own list of {"train", "test"} split indices.
+            If "splits" is None, you can additionally specify train_frac and num_train_test_splits to generate your own.
+    """
     results_arr = Parallel(n_jobs=num_parallel_jobs)(
         delayed(get_linregress_consistency_persphalftrial)(
             source=source,
