@@ -1,5 +1,5 @@
 import numpy as np
-
+import xarray as xr
 
 def map_from_str(map_type):
     if map_type.lower() == "pls":
@@ -47,3 +47,39 @@ def generate_train_test_splits(
             {"train": np.array([], dtype=int), "test": np.arange(num_stim)}
         ]
     return train_test_splits
+
+def get_cv_best_params(results, metric="r_xy_n_sb"):
+    animals = list(results.keys())
+    parameters = list(results[animals[0]].keys())
+    exemplar_result = results[animals[0]][parameters[0]]["test"][metric]
+    assert exemplar_result.ndim == 3 # trials x num_train_test_splits x units
+    res_xarray = isinstance(exemplar_result, xr.DataArray)
+    num_splits = len(examplar_list.train_test_splits) if res_xarray else exemplar_result.shape[1]
+    map_kwargs = []
+    # for every split, we find the best cross validated parameters
+    for s in range(num_splits):
+        best_res = -np.inf
+        best_params = None
+        for curr_param in parameters:
+            curr_res_animals = [results[a][curr_param]["test"][metric] for a in animals]
+            if res_xarray:
+                concat_res = xr.concat(curr_res_animals, dim="units")
+                curr_pop_res = concat_res.isel(train_test_splits=s)
+                assert curr_pop_res.ndim == 2
+                curr_res = curr_pop_res.mean(dim="trial_bootstrap_iters")
+                curr_res = curr_res.median(dim="units", skipna=True)
+            else:
+                concat_res = np.concatenate(curr_res_animals, axis=-1)
+                curr_pop_res = concat_res[:, s, :]
+                assert curr_pop_res.ndim == 2
+                # average across trials
+                curr_res = np.mean(curr_pop_res, axis=0)
+                # median across neurons
+                curr_res = np.nanmedian(curr_res, axis=-1)
+
+            if curr_res > best_res:
+                best_res = curr_res
+                best_params = curr_alpha
+        print(f"Split {s}, best result {best_res}, best alpha {best_params}")
+        map_kwargs.append(best_params)
+    return map_kwargs

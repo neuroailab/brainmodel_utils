@@ -54,6 +54,10 @@ def get_consistency_per_neuron(X, Y, X1, X2, Y1, Y2, metric="pearsonr"):
 def get_linregress_consistency_persplit(
     X, Y, X1, X2, Y1, Y2, map_kwargs, train_idx, test_idx, metric="pearsonr",
 ):
+    """
+    Note: "r_xy_n_sb" is the main consistency metric. The rest are its components
+    that are stored for convenience.
+    """
     assert "rsa" not in metric
     sphalf_input_checker(X=X, Y=Y, X1=X1, X2=X2, Y1=Y1, Y2=Y2)
 
@@ -203,8 +207,8 @@ def get_linregress_consistency(
     between source and target.
 
     source: Either model features (stimuli x units), or neural features (trials x stimuli x units)
-    target: Neural features (trials x stimuli x units)
-    map_kwargs: Either a dict or a list of dicts (one per train/test split) specifying the linear regression parameters
+    target: Neural features (trials x stimuli x units), usually from a different animal if the source features are neural too.
+    map_kwargs: Either a dict or a list of dicts (one per train/test split) specifying the linear regression parameters.
     num_bootstrap_iters: How many split-halves to compute.
     num_parallel_jobs: Number of parallel jobs to parallelize the outermost for loop over split-half trials.
     start_seed: Starting seed for generating split halves (for reproducibility).
