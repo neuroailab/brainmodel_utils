@@ -1,15 +1,13 @@
 import xarray as xr
 from joblib import Parallel, delayed
 import copy
+from brainmodel_utils.core.utils import dict_app, dict_np, make_list
 from brainmodel_utils.metrics.utils import (
     sphalf_input_checker,
     str_to_metric_func,
-    dict_app,
-    dict_np,
     generic_trial_avg,
     get_splithalves,
     concat_dict_sp,
-    make_list,
 )
 from brainmodel_utils.neural_mappers import PipelineNeuralMap
 from brainmodel_utils.neural_mappers.utils import generate_train_test_splits

@@ -2,7 +2,7 @@ import numpy as np
 import xarray as xr
 from scipy.stats import pearsonr, spearmanr
 from functools import partial
-
+from collections import defaultdict
 
 def upper_tri(X):
     """Returns upper triangular part due to symmetry of RSA.
@@ -81,18 +81,6 @@ def str_to_metric_func(name):
     return metric_func
 
 
-def dict_app(d, curr):
-    assert set(list(d.keys())) == set(list(curr.keys()))
-    for k, v in curr.items():
-        d[k].append(v)
-
-
-def dict_np(d):
-    for k, v in d.items():
-        assert isinstance(v, list)
-        d[k] = np.array(v)
-
-
 def concat_dict_sp(
     results_arr,
     partition_names=["train", "test"],
@@ -135,10 +123,6 @@ def concat_dict_sp(
             results_dict[p][metric_name] = metric_value_concat
 
     return results_dict
-
-
-def make_list(d, num_times):
-    return [d] * num_times
 
 
 def generic_trial_avg(source, trial_dim="trials", trial_axis=0):
