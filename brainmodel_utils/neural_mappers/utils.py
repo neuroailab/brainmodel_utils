@@ -25,12 +25,13 @@ def map_from_str(map_type):
     else:
         raise ValueError(f"{map_type.lower()} is not supported.")
 
+
 def generate_train_test_splits(
     num_stim, num_splits=5, train_frac=0.8, start_seed=1234,
 ):
     if train_frac > 0:
         train_test_splits = []
-        for s in range(start_seed, start_seed+num_splits):
+        for s in range(start_seed, start_seed + num_splits):
             rand_idx = np.random.RandomState(seed=s).permutation(num_stim)
             num_train = (int)(np.ceil(train_frac * len(rand_idx)))
             train_idx = rand_idx[:num_train]

@@ -1,12 +1,23 @@
 from joblib import Parallel, delayed
 import copy
-from brainmodel_utils.metrics.utils import sphalf_input_checker, str_to_metric_func, dict_app, dict_np, generic_trial_avg, get_splithalves, concat_dict_sp, make_list
+from brainmodel_utils.metrics.utils import (
+    sphalf_input_checker,
+    str_to_metric_func,
+    dict_app,
+    dict_np,
+    generic_trial_avg,
+    get_splithalves,
+    concat_dict_sp,
+    make_list,
+)
 from brainmodel_utils.neural_mappers import PipelineNeuralMap
 from brainmodel_utils.neural_mappers.utils import generate_train_test_splits
+
 
 def sb_correction(r):
     # spearman brown correction for split halves
     return 2 * r / (1 + r)
+
 
 def get_consistency_per_neuron(X, Y, X1, X2, Y1, Y2, metric="pearsonr"):
     if "rsa" in metric:
@@ -38,17 +49,9 @@ def get_consistency_per_neuron(X, Y, X1, X2, Y1, Y2, metric="pearsonr"):
     }
     return reg_metrics
 
+
 def get_linregress_consistency_persplit(
-    X,
-    Y,
-    X1,
-    X2,
-    Y1,
-    Y2,
-    map_kwargs,
-    train_idx,
-    test_idx,
-    metric="pearsonr",
+    X, Y, X1, X2, Y1, Y2, map_kwargs, train_idx, test_idx, metric="pearsonr",
 ):
     assert "rsa" not in metric
     sphalf_input_checker(X=X, Y=Y, X1=X1, X2=X2, Y1=Y1, Y2=Y2)
@@ -131,13 +134,17 @@ def get_linregress_consistency_persplit(
     # neurons length vector
     return {"train": reg_metrics_train, "test": reg_metrics_test}
 
-def get_linregress_consistency_persphalftrial(source, target,
-                                              map_kwargs,
-                                              splits=None,
-                                              num_train_test_splits=5,
-                                              train_frac=0.8,
-                                              metric="pearsonr",
-                                              sphseed=0):
+
+def get_linregress_consistency_persphalftrial(
+    source,
+    target,
+    map_kwargs,
+    splits=None,
+    num_train_test_splits=5,
+    train_frac=0.8,
+    metric="pearsonr",
+    sphseed=0,
+):
     if not isinstance(map_kwargs, list):
         assert isinstance(map_kwargs, dict)
         map_kwargs = make_list(map_kwargs, num_times=num_train_test_splits)
@@ -162,19 +169,50 @@ def get_linregress_consistency_persphalftrial(source, target,
         )
     assert isinstance(splits, list)
 
-    results_arr = [get_linregress_consistency_persplit(X=X, Y=Y, X1=X1, X2=X2, Y1=Y1, Y2=Y2,
-                                               train_idx=s["train"],
-                                               test_idx=s["test"],
-                                               map_kwargs=map_kwargs[s_idx],
-                                               metric=metric) for s_idx, s in enumerate(splits)]
+    results_arr = [
+        get_linregress_consistency_persplit(
+            X=X,
+            Y=Y,
+            X1=X1,
+            X2=X2,
+            Y1=Y1,
+            Y2=Y2,
+            train_idx=s["train"],
+            test_idx=s["test"],
+            map_kwargs=map_kwargs[s_idx],
+            metric=metric,
+        )
+        for s_idx, s in enumerate(splits)
+    ]
     return concat_dict_sp(results_arr)
 
-def get_linregress_consistency(source, target, map_kwargs, num_bootstrap_iters=100, num_parallel_jobs=1, start_seed=0, **kwargs):
-    results_arr = Parallel(n_jobs=num_parallel_jobs)(delayed(get_linregress_consistency_persphalftrial)(source=source, target=target, map_kwargs=map_kwargs, sphseed=sphseed, **kwargs) for sphseed in range(start_seed, start_seed+num_bootstrap_iters))
+
+def get_linregress_consistency(
+    source,
+    target,
+    map_kwargs,
+    num_bootstrap_iters=100,
+    num_parallel_jobs=1,
+    start_seed=0,
+    **kwargs
+):
+    results_arr = Parallel(n_jobs=num_parallel_jobs)(
+        delayed(get_linregress_consistency_persphalftrial)(
+            source=source,
+            target=target,
+            map_kwargs=map_kwargs,
+            sphseed=sphseed,
+            **kwargs
+        )
+        for sphseed in range(start_seed, start_seed + num_bootstrap_iters)
+    )
     # we format the results as an xarray matching the units dimension of the target
     if isinstance(target, xr.DataArray):
-        results_dict = concat_dict_sp(results_arr, xarray_target=target,
-                                      xarray_dims=["trial_boostrap_iters", "train_test_splits", "units"])
+        results_dict = concat_dict_sp(
+            results_arr,
+            xarray_target=target,
+            xarray_dims=["trial_boostrap_iters", "train_test_splits", "units"],
+        )
     else:
         results_dict = concat_dict_sp(results_arr)
     return results_dict

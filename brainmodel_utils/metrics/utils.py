@@ -3,17 +3,21 @@ import xarray as xr
 from scipy.stats import pearsonr, spearmanr
 from functools import partial
 
+
 def upper_tri(X):
     """Returns upper triangular part due to symmetry of RSA.
         Excludes diagonal as generally recommended:
         https://www.sciencedirect.com/science/article/pii/S1053811916308059"""
     return X[np.triu_indices_from(X, k=1)]
 
+
 def rsm(X):
     return np.corrcoef(X)
 
+
 def rdm(X):
     return 1 - rsm(X)
+
 
 def input_checker_2d(X, Y):
     assert X.ndim == 2
@@ -26,6 +30,7 @@ def input_checker_2d(X, Y):
         # provide an extra layer of security for xarrays
         assert Y.dims[0] == "stimuli"
         assert Y.dims[1] == "units"
+
 
 def sphalf_input_checker(X, Y, X1, X2, Y1, Y2, dim_val=2):
     if dim_val == 2:
@@ -45,6 +50,7 @@ def sphalf_input_checker(X, Y, X1, X2, Y1, Y2, dim_val=2):
     assert Y.shape == Y1.shape
     assert Y1.shape == Y2.shape
 
+
 def rsa(X, Y, mat_type="rdm", metric="pearsonr"):
     input_checker_2d(X=X, Y=Y)
 
@@ -61,6 +67,7 @@ def rsa(X, Y, mat_type="rdm", metric="pearsonr"):
     metric_func = str_to_metric_func(metric)
     return metric_func(rep_X, rep_Y)
 
+
 def str_to_metric_func(name):
     if name == "pearsonr":
         metric_func = pearsonr
@@ -72,6 +79,7 @@ def str_to_metric_func(name):
         metric_func = partial(rsa, metric="spearmanr")
         raise ValueError
     return metric_func
+
 
 def dict_app(d, curr):
     assert set(list(d.keys())) == set(list(curr.keys()))
@@ -85,9 +93,14 @@ def dict_np(d):
         d[k] = np.array(v)
 
 
-def concat_dict_sp(results_arr, partition_names=["train", "test"],
-                   agg_func=None, agg_func_axis=0,
-                   xarray_target=None, xarray_dims=None):
+def concat_dict_sp(
+    results_arr,
+    partition_names=["train", "test"],
+    agg_func=None,
+    agg_func_axis=0,
+    xarray_target=None,
+    xarray_dims=None,
+):
 
     results_dict = {}
     for p in partition_names:
@@ -110,7 +123,11 @@ def concat_dict_sp(results_arr, partition_names=["train", "test"],
                 assert "units" in xarray_dims
                 assert xarray_target.shape[-1] == len(xarray_target.units)
                 assert metric_value_concat.shape[-1] == xarray_target.shape[-1]
-                metric_value_concat = xr.DataArray(metric_value_concat, dims=xarray_dims, coords=xarray_target.units.coords)
+                metric_value_concat = xr.DataArray(
+                    metric_value_concat,
+                    dims=xarray_dims,
+                    coords=xarray_target.units.coords,
+                )
 
             if agg_func is not None:
                 metric_value_concat = agg_func(metric_value_concat, axis=agg_func_axis)
@@ -118,8 +135,10 @@ def concat_dict_sp(results_arr, partition_names=["train", "test"],
 
     return results_dict
 
+
 def make_list(d, num_times):
     return [d] * num_times
+
 
 def generic_trial_avg(source, trial_dim="trials", trial_axis=0):
     assert source.ndim == 3
@@ -128,6 +147,7 @@ def generic_trial_avg(source, trial_dim="trials", trial_axis=0):
     else:
         X = np.nanmean(source, axis=trial_axis)
     return X
+
 
 def get_splithalves(M, seed):
     if M.ndim == 2:
@@ -138,7 +158,7 @@ def get_splithalves(M, seed):
         rng = np.random.RandomState(seed=seed)
         n_rep = M.shape[0]
         ri = list(range(n_rep))
-        rng.shuffle(ri)   # without replacement
+        rng.shuffle(ri)  # without replacement
         sphf_n_rep = n_rep // 2
         ri1 = ri[:sphf_n_rep]
         ri2 = ri[sphf_n_rep:]
