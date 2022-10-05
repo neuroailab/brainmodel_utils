@@ -149,9 +149,17 @@ def get_linregress_consistency_persphalftrial(
     metric="pearsonr",
     sphseed=0,
 ):
+    if splits is None:
+        splits = generate_train_test_splits(
+            num_stim=X.shape[0],
+            num_splits=num_train_test_splits,
+            train_frac=train_frac,
+        )
+    assert isinstance(splits, list)
+
     if not isinstance(map_kwargs, list):
         assert isinstance(map_kwargs, dict)
-        map_kwargs = make_list(map_kwargs, num_times=num_train_test_splits)
+        map_kwargs = make_list(map_kwargs, num_times=len(splits))
 
     if source.ndim == 3:
         X = generic_trial_avg(source)
@@ -175,14 +183,6 @@ def get_linregress_consistency_persphalftrial(
     if (not np.isfinite(Y1).all()) or (not np.isfinite(Y2).all()):
         return
 
-    if splits is None:
-        splits = generate_train_test_splits(
-            num_stim=X.shape[0],
-            num_splits=num_train_test_splits,
-            train_frac=train_frac,
-        )
-    assert isinstance(splits, list)
-
     results_arr = [
         get_linregress_consistency_persplit(
             X=X,
@@ -205,7 +205,7 @@ def get_linregress_consistency(
     source,
     target,
     map_kwargs,
-    num_bootstrap_iters=200,
+    num_bootstrap_iters=1000,
     num_parallel_jobs=1,
     start_seed=1234,
     **kwargs
