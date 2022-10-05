@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def dict_to_str(adict):
     """Converts a dictionary (e.g. hyperparameter configuration) into a string"""
     return "".join("{}{}".format(key, val) for key, val in sorted(adict.items()))

@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 
+
 def map_from_str(map_type):
     if map_type.lower() == "pls":
         from brainmodel_utils.neural_mappers import PLSNeuralMap
@@ -48,13 +49,14 @@ def generate_train_test_splits(
         ]
     return train_test_splits
 
+
 def get_cv_best_params(results, metric="r_xy_n_sb"):
-    assert isinstance(results, list) # of length num_train_test_splits
+    assert isinstance(results, list)  # of length num_train_test_splits
     num_splits = len(results)
     animals = list(results[0].keys())
     parameters = list(results[0][animals[0]].keys())
     exemplar_result = results[0][animals[0]][parameters[0]]["test"][metric]
-    assert exemplar_result.ndim == 3 # trials x num_cv_train_test_splits x units
+    assert exemplar_result.ndim == 3  # trials x num_cv_train_test_splits x units
     res_xarray = isinstance(exemplar_result, xr.DataArray)
 
     map_kwargs = []
@@ -63,7 +65,9 @@ def get_cv_best_params(results, metric="r_xy_n_sb"):
         best_res = -np.inf
         best_params = None
         for curr_param in parameters:
-            curr_res_animals = [results[s][a][curr_param]["test"][metric] for a in animals]
+            curr_res_animals = [
+                results[s][a][curr_param]["test"][metric] for a in animals
+            ]
             if res_xarray:
                 curr_pop_res = xr.concat(curr_res_animals, dim="units")
                 assert curr_pop_res.ndim == 3

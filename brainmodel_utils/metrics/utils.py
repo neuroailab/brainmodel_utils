@@ -4,6 +4,7 @@ from scipy.stats import pearsonr, spearmanr
 from functools import partial
 from collections import defaultdict
 
+
 def upper_tri(X):
     """Returns upper triangular part due to symmetry of RSA.
         Excludes diagonal as generally recommended:
@@ -25,11 +26,14 @@ def input_checker_2d(X, Y):
         # provide an extra layer of security for xarrays
         assert X.dims[0] == "stimuli"
         assert X.dims[1] == "units"
+    assert np.isfinite(X).all()
+
     assert Y.ndim == 2
     if isinstance(Y, xr.DataArray):
         # provide an extra layer of security for xarrays
         assert Y.dims[0] == "stimuli"
         assert Y.dims[1] == "units"
+    assert np.isfinite(Y).all()
 
 
 def sphalf_input_checker(X, Y, X1, X2, Y1, Y2, dim_val=2):
@@ -49,6 +53,11 @@ def sphalf_input_checker(X, Y, X1, X2, Y1, Y2, dim_val=2):
     assert X1.shape == X2.shape
     assert Y.shape == Y1.shape
     assert Y1.shape == Y2.shape
+    # assert finiteness
+    assert np.isfinite(X1).all()
+    assert np.isfinite(X2).all()
+    assert np.isfinite(Y1).all()
+    assert np.isfinite(Y2).all()
 
 
 def rsa(X, Y, mat_type="rdm", metric="pearsonr"):
