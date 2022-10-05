@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 from joblib import Parallel, delayed
 import copy
@@ -158,11 +159,21 @@ def get_linregress_consistency_persphalftrial(
         # e.g. model features (stim x units)
         assert source.ndim == 2
         X = source
+    # when fully trial averaged, needs to not contain any NaNs
+    assert np.isfinite(X).all()
     X1, X2 = get_splithalves(source, seed=sphseed)
+    # skip any splithalves that have NaN trials
+    if (not np.isfinite(X1).all()) or (not np.isfinite(X2).all()):
+        return
     # target is always neural data, so there is a trials dimension
     assert target.ndim == 3
     Y = generic_trial_avg(target)
+    # when fully trial averaged, needs to not contain any NaNs
+    assert np.isfinite(Y).all()
     Y1, Y2 = get_splithalves(target, seed=sphseed)
+    # skip any splithalves that have NaN trials
+    if (not np.isfinite(Y1).all()) or (not np.isfinite(Y2).all()):
+        return
 
     if splits is None:
         splits = generate_train_test_splits(
@@ -194,7 +205,7 @@ def get_linregress_consistency(
     source,
     target,
     map_kwargs,
-    num_bootstrap_iters=100,
+    num_bootstrap_iters=200,
     num_parallel_jobs=1,
     start_seed=1234,
     **kwargs

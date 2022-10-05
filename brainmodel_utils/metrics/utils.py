@@ -103,11 +103,12 @@ def concat_dict_sp(
     for p in partition_names:
         results_dict[p] = defaultdict(list)
 
-    for res_idx, res in enumerate(results_arr):  # e.g. of length num_train_test_splits
-        for p in partition_names:
-            for metric_name, metric_value in res[p].items():
-                assert not isinstance(metric_value, dict)
-                results_dict[p][metric_name].append(metric_value)
+    for res in results_arr:  # e.g. of length num_train_test_splits
+        if res is not None:
+            for p in partition_names:
+                for metric_name, metric_value in res[p].items():
+                    assert not isinstance(metric_value, dict)
+                    results_dict[p][metric_name].append(metric_value)
 
     for p, v1 in results_dict.items():
         for metric_name, metric_value in v1.items():

@@ -71,15 +71,15 @@ def get_cv_best_params(results, metric="r_xy_n_sb"):
             if res_xarray:
                 curr_pop_res = xr.concat(curr_res_animals, dim="units")
                 assert curr_pop_res.ndim == 3
-                curr_res = curr_pop_res.mean(dim="trial_bootstrap_iters", skipna=True)
+                curr_res = curr_pop_res.mean(dim="trial_bootstrap_iters")
                 # note: these are the cross validated train/test splits for that train/test split
                 curr_res = curr_res.mean(dim="train_test_splits")
                 curr_res = curr_res.median(dim="units", skipna=True)
             else:
                 curr_pop_res = np.concatenate(curr_res_animals, axis=-1)
                 assert curr_pop_res.ndim == 3
-                # average across trials (skipping any nan ones)
-                curr_res = np.nanmean(curr_pop_res, axis=0)
+                # average across bootstrap iters
+                curr_res = np.mean(curr_pop_res, axis=0)
                 # average across cv train_test_splits
                 curr_res = np.mean(curr_pop_res, axis=0)
                 # median across neurons
