@@ -51,7 +51,9 @@ def generate_train_test_splits(
 
 
 def get_cv_best_params(results, metric="r_xy_n_sb"):
-    assert isinstance(results, list)  # of length num_train_test_splits
+    assert isinstance(results, list) or isinstance(
+        results, np.ndarray
+    )  # of length num_train_test_splits
     num_splits = len(results)
     animals = list(results[0].keys())
     parameters = list(results[0][animals[0]].keys())
@@ -75,6 +77,7 @@ def get_cv_best_params(results, metric="r_xy_n_sb"):
                 # note: these are the cross validated train/test splits for that train/test split
                 curr_res = curr_res.mean(dim="train_test_splits")
                 curr_res = curr_res.median(dim="units", skipna=True)
+                curr_res = curr_res.data
             else:
                 curr_pop_res = np.concatenate(curr_res_animals, axis=-1)
                 assert curr_pop_res.ndim == 3
@@ -87,7 +90,7 @@ def get_cv_best_params(results, metric="r_xy_n_sb"):
 
             if curr_res > best_res:
                 best_res = curr_res
-                best_params = curr_alpha
-        print(f"Split {s}, best result {best_res}, best alpha {best_params}")
+                best_params = curr_param
+        print(f"Split: {s}, best result: {best_res}, best params: {best_params}")
         map_kwargs.append(best_params)
     return map_kwargs

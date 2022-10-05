@@ -243,7 +243,7 @@ def get_linregress_consistency(
         results_dict = concat_dict_sp(
             results_arr,
             xarray_target=target,
-            xarray_dims=["trial_boostrap_iters", "train_test_splits", "units"],
+            xarray_dims=["trial_bootstrap_iters", "train_test_splits", "units"],
         )
     else:
         results_dict = concat_dict_sp(results_arr)
