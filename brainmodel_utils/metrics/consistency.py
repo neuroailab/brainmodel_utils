@@ -16,7 +16,7 @@ from brainmodel_utils.neural_mappers.utils import generate_train_test_splits
 
 def sb_correction(r):
     # spearman brown correction for split halves
-    return 2 * r / (1 + r)
+    return (2.0 * r) / (1.0 + r)
 
 
 def get_consistency_per_neuron(X, Y, X1, X2, Y1, Y2, metric="pearsonr"):
