@@ -49,6 +49,27 @@ def generate_train_test_splits(
         ]
     return train_test_splits
 
+def convert_dict_to_tuple(d):
+    assert isinstance(d, dict)
+    d_tuple = []
+    for k,v in d.items():
+        assert not isinstance(k, dict)
+        if isinstance(v, dict):
+            d_tuple.append(tuple([k, convert_dict(v)]))
+        else:
+            d_tuple.append(tuple([k,v]))
+    d_tuple = tuple(d_tuple)
+    return d_tuple
+
+def convert_tuple_to_dict(d_tuple):
+    assert isinstance(d_tuple, tuple)
+    d = dict(d_tuple)
+    for k,v in d.items():
+        if isinstance(v, tuple):
+            d[k] = convert_tuple_to_dict(v)
+        else:
+            d[k] = v
+    return d
 
 def get_cv_best_params(results, metric="r_xy_n_sb", verbose=False, params_as_dict=True):
     assert isinstance(results, list) or isinstance(
@@ -95,7 +116,7 @@ def get_cv_best_params(results, metric="r_xy_n_sb", verbose=False, params_as_dic
         if params_as_dict and not isinstance(best_params, dict):
             # assumes we saved it originally as an immutable type
             assert isinstance(best_params, tuple)
-            best_params = dict(best_params)
+            best_params = convert_tuple_to_dict(best_params)
         if verbose:
             print(f"Split: {s}, best result: {best_res}, best params: {best_params}")
         map_kwargs.append(best_params)
