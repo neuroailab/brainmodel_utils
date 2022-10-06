@@ -49,27 +49,30 @@ def generate_train_test_splits(
         ]
     return train_test_splits
 
+
 def convert_dict_to_tuple(d):
     assert isinstance(d, dict)
     d_tuple = []
-    for k,v in d.items():
+    for k, v in d.items():
         assert not isinstance(k, dict)
         if isinstance(v, dict):
-            d_tuple.append(tuple([k, convert_dict(v)]))
+            d_tuple.append(tuple([k, convert_dict_to_tuple(v)]))
         else:
-            d_tuple.append(tuple([k,v]))
+            d_tuple.append(tuple([k, v]))
     d_tuple = tuple(d_tuple)
     return d_tuple
+
 
 def convert_tuple_to_dict(d_tuple):
     assert isinstance(d_tuple, tuple)
     d = dict(d_tuple)
-    for k,v in d.items():
+    for k, v in d.items():
         if isinstance(v, tuple):
             d[k] = convert_tuple_to_dict(v)
         else:
             d[k] = v
     return d
+
 
 def get_cv_best_params(results, metric="r_xy_n_sb", verbose=False, params_as_dict=True):
     assert isinstance(results, list) or isinstance(
