@@ -50,7 +50,7 @@ def generate_train_test_splits(
     return train_test_splits
 
 
-def get_cv_best_params(results, metric="r_xy_n_sb", verbose=False):
+def get_cv_best_params(results, metric="r_xy_n_sb", verbose=False, params_as_dict=True):
     assert isinstance(results, list) or isinstance(
         results, np.ndarray
     )  # of length num_train_test_splits
@@ -91,6 +91,11 @@ def get_cv_best_params(results, metric="r_xy_n_sb", verbose=False):
             if curr_res > best_res:
                 best_res = curr_res
                 best_params = curr_param
+
+        if params_as_dict and not isinstance(best_params, dict):
+            # assumes we saved it originally as an immutable type
+            assert isinstance(best_params, tuple)
+            best_params = dict(best_params)
         if verbose:
             print(f"Split: {s}, best result: {best_res}, best params: {best_params}")
         map_kwargs.append(best_params)
