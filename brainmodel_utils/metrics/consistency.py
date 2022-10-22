@@ -52,6 +52,7 @@ def get_consistency_per_neuron(X, Y, X1, X2, Y1, Y2, metric="pearsonr"):
 
 def get_linregress_consistency_persplit(
     X, Y, X1, X2, Y1, Y2, map_kwargs, train_idx, test_idx, metric="pearsonr",
+    db_interface=None,
 ):
     """
     Note: "r_xy_n_sb" is the main consistency metric. The rest are its components
@@ -133,6 +134,12 @@ def get_linregress_consistency_persplit(
         )
         dict_app(d=reg_metrics_test, curr=curr_test_res)
 
+        if db_interface is not None:
+            additional_data = {"data_split": "train", "neuron_idx": n}
+            db_interface.save_one_neuron(curr_train_res, additional_data)
+            additional_data = {"data_split": "test", "neuron_idx": n}
+            db_interface.save_one_neuron(curr_test_res, additional_data)
+
     dict_np(reg_metrics_train)
     dict_np(reg_metrics_test)
     # neurons length vector
@@ -148,6 +155,7 @@ def get_linregress_consistency_persphalftrial(
     train_frac=0.8,
     metric="pearsonr",
     sphseed=0,
+    db_interface=None,
 ):
 
     if source.ndim == 3:
@@ -184,8 +192,12 @@ def get_linregress_consistency_persphalftrial(
         assert isinstance(map_kwargs, dict)
         map_kwargs = make_list(map_kwargs, num_times=len(splits))
 
-    results_arr = [
-        get_linregress_consistency_persplit(
+    results_arr = []
+    for s_idx, s in enumerate(splits):
+        if db_interface is not None:
+            db_interface.update_record_base({"split_idx": s_idx})
+
+        sph_result = get_linregress_consistency_persplit(
             X=X,
             Y=Y,
             X1=X1,
@@ -196,9 +208,34 @@ def get_linregress_consistency_persphalftrial(
             test_idx=s["test"],
             map_kwargs=map_kwargs[s_idx],
             metric=metric,
+            db_interface=db_interface,
         )
-        for s_idx, s in enumerate(splits)
-    ]
+
+        if db_interface is not None:
+            agg_funcs = [
+                ("mean", np.mean),
+                ("median", np.median),
+                ("std", np.std),
+            ]
+
+            for agg_key, agg_func in  agg_funcs:
+                for data_split in ["train", "test"]:
+                    additional_data = {"data_split": data_split}
+                    result = {f"{k}_{agg_key}": agg_func(v) for k,v in sph_result[data_split]}
+                    db_interface.save_agg_over_neurons(result, additional_data)
+
+        results_arr.append(sph_result)
+
+    if db_interface is not None:
+        db_interface.remove_from_record_base("split_idx")
+        for agg_key1, agg_func1 in  agg_funcs:
+            agg_dict = concat_dict_sp(results_arr, agg_func=agg_func, agg_func_axis=1)
+            for agg_key2, agg_func2 in  agg_funcs:
+                for data_split in ["train", "test"]:
+                    additional_data = {"data_split": data_split}
+                    result = {f"{k}_neuron_{agg_key1}_split_{agg_key2}": agg_func2(v) for k,v in agg_dict[data_split]}
+                    db_interface.save_agg_over_splits(result, additional_data)
+
     return concat_dict_sp(results_arr)
 
 
@@ -235,6 +272,7 @@ def get_linregress_consistency(
             target=target,
             map_kwargs=map_kwargs,
             sphseed=sphseed,
+            db_interface=db_interface, # TODO: how to get the split-half index in here?
             **kwargs
         )
         for sphseed in range(start_seed, start_seed + num_bootstrap_iters)
@@ -248,4 +286,18 @@ def get_linregress_consistency(
         )
     else:
         results_dict = concat_dict_sp(results_arr)
+
+        if db_interface is not None:
+            agg_funcs = [
+                ("mean", np.mean),
+                ("median", np.median),
+                ("std", np.std),
+            ]
+            for agg_key, agg_func in  agg_funcs:
+                # mean over split-halves and train-test splits
+                agg_dict = concat_dict_sp(results_arr, agg_func=np.mean, agg_func_axis=(0,1))
+                for data_split in ["train", "test"]:
+                    additional_data = {"data_split": data_split}
+                    result = {f"{k}_neuron_{agg_key}": agg_func(v) for k,v in agg_dict[data_split]}
+                    db_interface.save_agg_over_splithalves(result, additional_data)
     return results_dict
