@@ -246,6 +246,7 @@ def get_linregress_consistency(
     num_bootstrap_iters=1000,
     num_parallel_jobs=1,
     start_seed=1234,
+    db_interface=None,
     **kwargs
 ):
 
