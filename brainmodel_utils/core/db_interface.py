@@ -137,7 +137,7 @@ class DBInterface(object):
 
 
     @retry
-    def save_one_neuron(self, result, is_record=False, additional_data={}):
+    def save_one_neuron(self, result, additional_data={}, is_record=False):
         if not is_record:
             record = self.get_record_base()
             record.update(additional_data)

@@ -221,7 +221,7 @@ def get_linregress_consistency_persphalftrial(
             for agg_key, agg_func in  agg_funcs:
                 for data_split in ["train", "test"]:
                     additional_data = {"data_split": data_split}
-                    result = {f"{k}_{agg_key}": agg_func(v) for k,v in sph_result[data_split]}
+                    result = {f"{k}_{agg_key}": float(agg_func(v)) for k,v in sph_result[data_split].items()}
                     db_interface.save_agg_over_neurons(result, additional_data)
 
         results_arr.append(sph_result)
@@ -233,7 +233,7 @@ def get_linregress_consistency_persphalftrial(
             for agg_key2, agg_func2 in  agg_funcs:
                 for data_split in ["train", "test"]:
                     additional_data = {"data_split": data_split}
-                    result = {f"{k}_neuron_{agg_key1}_split_{agg_key2}": agg_func2(v) for k,v in agg_dict[data_split]}
+                    result = {f"{k}_neuron_{agg_key1}_split_{agg_key2}": float(agg_func2(v)) for k,v in agg_dict[data_split].items()}
                     db_interface.save_agg_over_splits(result, additional_data)
 
     return concat_dict_sp(results_arr)
@@ -299,6 +299,6 @@ def get_linregress_consistency(
                 agg_dict = concat_dict_sp(results_arr, agg_func=np.mean, agg_func_axis=(0,1))
                 for data_split in ["train", "test"]:
                     additional_data = {"data_split": data_split}
-                    result = {f"{k}_neuron_{agg_key}": agg_func(v) for k,v in agg_dict[data_split]}
+                    result = {f"{k}_neuron_{agg_key}": float(agg_func(v)) for k,v in agg_dict[data_split].items()}
                     db_interface.save_agg_over_splithalves(result, additional_data)
     return results_dict

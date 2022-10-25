@@ -6,11 +6,12 @@ if os.path.exists("requirements.txt"):
         requirements = fb.readlines()
 else:
     requirements = [
-        "numpy>=1.20.3",
-        "xarray>=2022.3.0",
+        "numpy==1.18.5",
+        "xarray==0.15.1",
         "scikit-learn>=0.24.2",
-        "scipy>=1.7.1",
-        "h5py>=3.3.0",
+        "pandas==0.25.3",
+        "scipy==1.5.2",
+        "h5py==2.10.0",
         "black>=19.10b0",
     ]
 
