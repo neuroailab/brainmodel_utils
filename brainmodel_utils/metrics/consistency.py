@@ -1,6 +1,6 @@
 import numpy as np
 import xarray as xr
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, parallel_backend
 import copy
 from brainmodel_utils.core.utils import dict_app, dict_np, make_list
 from brainmodel_utils.metrics.utils import (
@@ -157,7 +157,8 @@ def get_linregress_consistency_persphalftrial(
     sphseed=0,
     db_interface=None,
 ):
-
+    if db_interface is not None:
+        db_interface.update_record_base({"sphseed": sphseed})
     if source.ndim == 3:
         X = generic_trial_avg(source)
     else:
@@ -267,17 +268,18 @@ def get_linregress_consistency(
     splits: Your own list of {"train", "test"} split indices.
             If "splits" is None, you can additionally specify train_frac and num_train_test_splits to generate your own.
     """
-    results_arr = Parallel(n_jobs=num_parallel_jobs)(
-        delayed(get_linregress_consistency_persphalftrial)(
-            source=source,
-            target=target,
-            map_kwargs=map_kwargs,
-            sphseed=sphseed,
-            db_interface=db_interface, # TODO: how to get the split-half index in here?
-            **kwargs
+    with parallel_backend("loky", inner_max_num_threads=1):
+        results_arr = Parallel(n_jobs=num_parallel_jobs)(
+            delayed(get_linregress_consistency_persphalftrial)(
+                source=source,
+                target=target,
+                map_kwargs=map_kwargs,
+                sphseed=sphseed,
+                db_interface=db_interface,
+                **kwargs
+            )
+            for sphseed in range(start_seed, start_seed + num_bootstrap_iters)
         )
-        for sphseed in range(start_seed, start_seed + num_bootstrap_iters)
-    )
     # we format the results as an xarray matching the units dimension of the target
     if isinstance(target, xr.DataArray):
         results_dict = concat_dict_sp(

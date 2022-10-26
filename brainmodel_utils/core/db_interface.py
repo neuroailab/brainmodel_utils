@@ -100,7 +100,7 @@ class DBInterface(object):
             # Overwrite logic: delete records associated with this experiment
             for record in records:
                 self.delete_documents_for_query("experiments", {"_id": record["_id"]})
-                for coll in ["per_neuron", "agg_over_neurons", "agg_over_splits", "models"]:
+                for coll in ["per_neuron", "agg_over_neurons", "agg_over_splits", "agg_over_splithalves", "models"]:
                     self.delete_documents_for_query(coll, {"experiments_id": record["_id"]})
             records = self._database.experiments.find(metadata)
             records = list(records)
