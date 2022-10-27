@@ -281,7 +281,7 @@ def get_linregress_consistency(
             for sphseed in range(start_seed, start_seed + num_bootstrap_iters)
         )
     # we format the results as an xarray matching the units dimension of the target
-    if isinstance(target, xr.DataArray):
+    if isinstance(target, xr.DataArray) and db_interface is None:
         results_dict = concat_dict_sp(
             results_arr,
             xarray_target=target,
