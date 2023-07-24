@@ -111,6 +111,10 @@ def get_linregress_consistency_persplit(
     assert Y2_pred_train.shape == Y2_train.shape
     Y2_pred_test = neural_map_2.predict(X2_test)
     assert Y2_pred_test.shape == Y2_test.shape
+
+    additional_datas = []
+    results = []
+
     for n in range(Y_train.shape[1]):
         curr_train_res = get_consistency_per_neuron(
             X=Y_pred_train[:, n],
@@ -136,9 +140,14 @@ def get_linregress_consistency_persplit(
 
         if db_interface is not None:
             additional_data = {"data_split": "train", "neuron_idx": n}
-            db_interface.save_one_neuron(curr_train_res, additional_data)
+            # db_interface.save_one_neuron(curr_train_res, additional_data)
+            additional_datas.append(additional_data)
+            results.append(curr_train_res)
             additional_data = {"data_split": "test", "neuron_idx": n}
-            db_interface.save_one_neuron(curr_test_res, additional_data)
+            # db_interface.save_one_neuron(curr_test_res, additional_data)
+            additional_datas.append(additional_data)
+            results.append(curr_test_res)
+    db_interface.save_many_neurons(results, additional_datas)
 
     dict_np(reg_metrics_train)
     dict_np(reg_metrics_test)

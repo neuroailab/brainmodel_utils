@@ -154,6 +154,23 @@ class DBInterface(object):
 
 
     @retry
+    def save_many_neurons(self, results, additional_datas, is_record=False):
+        def generate_record(result, additional_data):
+            if not is_record:
+                record = self.get_record_base()
+                record.update(additional_data)
+                record.update(result)
+            else:
+                record = result
+        records = [generate_record(result, additional_data) for result, additional_data in zip(results, additional_datas)]
+        try:
+            self._database.per_neuron.insert_many(records, ordered=False)
+        except DuplicateKeyError as e:
+            pass
+            
+
+
+    @retry
     def save_agg_over_neurons(self, result, additional_data={}):
         record = self.get_record_base()
         record.update(additional_data)
