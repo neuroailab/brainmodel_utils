@@ -162,6 +162,7 @@ class DBInterface(object):
                 record.update(result)
             else:
                 record = result
+            return record
         records = [generate_record(result, additional_data) for result, additional_data in zip(results, additional_datas)]
         try:
             self._database.per_neuron.insert_many(records, ordered=False)
