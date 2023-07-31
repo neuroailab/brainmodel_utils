@@ -1,5 +1,7 @@
 import numpy as np
+import sys
 import sklearn.linear_model as lm
+import xarray as xr
 
 from . import neural_map_base as nm
 
@@ -75,6 +77,9 @@ class PercentileNeuralMap(nm.NeuralMapBase):
             X.shape[0] == Y.shape[0]
         ), f"Source and target sample dimension do not match: {X.shape} and {Y.shape}"
 
+        if isinstance(Y, xr.DataArray):
+            Y = Y.data
+
         # If target is a one-dimensional vector, make it into a column vector
         if Y.ndim == 1:
             Y = Y[:, np.newaxis]
@@ -110,7 +115,7 @@ class PercentileNeuralMap(nm.NeuralMapBase):
             else:
                 if source_features.ndim == 1:
                     source_features = source_features[:, np.newaxis]
-
+                # print('Y is a ', type(Y), Y.shape, file=sys.stderr)
                 mapper = getattr(lm, self._regression_type)(**self._regression_kwargs)
                 mapper.fit(source_features, Y[:, i][:, np.newaxis])
 
